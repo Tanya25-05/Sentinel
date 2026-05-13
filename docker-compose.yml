@@ -1,0 +1,63 @@
+version: "3.8"
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://sentinel:sentinel@postgres:5432/sentinel
+      - REDIS_URL=redis://redis:6379
+      - OLLAMA_HOST=http://ollama:11434
+    depends_on:
+      - postgres
+      - redis
+      - ollama
+    volumes:
+      - ./backend:/app
+    networks:
+      - sentinel
+
+  frontend:
+    build: ./src
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - sentinel
+
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=sentinel
+      - POSTGRES_USER=sentinel
+      - POSTGRES_PASSWORD=sentinel
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - sentinel
+
+  redis:
+    image: redis:7-alpine
+    networks:
+      - sentinel
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - sentinel
+    # Pull and run Llama 3.2 model
+    command: ["ollama", "run", "llama3.2"]
+
+volumes:
+  postgres_data:
+  ollama_data:
+
+networks:
+  sentinel:
+    driver: bridge
