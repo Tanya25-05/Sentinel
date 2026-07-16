@@ -11,6 +11,7 @@ export interface Scan {
 
 export interface Vulnerability {
   id: string;
+  title: string;
   scan_id: string;
   file_path: string;
   line_number?: number;
